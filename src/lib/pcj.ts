@@ -7,20 +7,33 @@ import { z } from 'zod';
  */
 const gibiFiles = import.meta.glob('../GIBI/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
+/** Nome do arquivo dentro de src/GIBI (ex.: "01.png", "16-1.png"). */
+function fileName(path: string): string {
+  return path.split('/').pop() ?? '';
+}
+
 /** Ordem de leitura do gibi: 01, 02, 03, 4, 5 … 16-1, 17-1, 18, 19, 20. */
 function pageNumber(path: string): number {
-  const n = Number.parseInt(path.split('/').pop() ?? '', 10);
+  const n = Number.parseInt(fileName(path), 10);
   return Number.isNaN(n) ? Number.MAX_SAFE_INTEGER : n;
 }
 
+const isCover = (path: string) => /^capa\.png$/i.test(fileName(path));
+
+/** Capa do gibi (CAPA.png), exibida no topo do painel — fora da numeração. */
+export const coverSrc =
+  Object.entries(gibiFiles).find(([path]) => isCover(path))?.[1] ?? '';
+
 export const gibiPages = Object.entries(gibiFiles)
+  .filter(([path]) => !isCover(path))
   .sort(([a], [b]) => pageNumber(a) - pageNumber(b))
-  .map(([path, src], i) => ({ src, alt: `Página ${i + 1} do gibi`, note: '' }));
+  .map(([path, src], i) => ({ src, alt: `Página ${i + 1} do gibi`, note: '', file: fileName(path) }));
 
 const pageSchema = z.object({
   src: z.string().refine(s => s.startsWith('/') || /^https:\/\//.test(s), 'Use uma imagem local ou HTTPS.'),
   alt: z.string().min(1).max(200),
   note: z.string().max(1000).default(''),
+  file: z.string().max(200).default(''),
 });
 
 export const comicSchema = z.object({
@@ -37,7 +50,7 @@ export const defaultComic: Comic = {
     'Uma narrativa jurídica que acompanha a negativa de um seguro de vida, a atuação dos advogados, o processo judicial e a conquista do direito da beneficiária — contada em quadrinhos, com linguagem simples e envolvente.',
   pages: gibiPages.length
     ? gibiPages
-    : [{ src: '/favicon.png', alt: 'Página 1 do gibi', note: '' }],
+    : [{ src: '/favicon.png', alt: 'Página 1 do gibi', note: '', file: '' }],
 };
 
 export function assertAdmin(isAdmin: unknown) {

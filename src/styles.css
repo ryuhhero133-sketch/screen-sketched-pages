@@ -167,6 +167,17 @@
 @keyframes entry-actions { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .entry-actions { animation: entry-actions .55s .1s ease-out both; }
 @media (prefers-reduced-motion: reduce) { .entry-actions { animation: none; } }
+
+/* Moldura neon dourada na capa do gibi. */
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 6px 1px color-mix(in oklch, var(--gold) 55%, transparent), 0 0 22px 4px color-mix(in oklch, var(--gold) 25%, transparent); }
+  50% { box-shadow: 0 0 14px 3px color-mix(in oklch, var(--gold) 85%, transparent), 0 0 40px 10px color-mix(in oklch, var(--gold) 45%, transparent); }
+}
+.neon-frame {
+  border: 2px solid var(--gold);
+  animation: neon-pulse 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .neon-frame { animation: none; box-shadow: 0 0 14px 3px color-mix(in oklch, var(--gold) 60%, transparent); } }
 @keyframes granted-rise { from { opacity: 0; transform: translateY(16px); letter-spacing: .2em; filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes pin-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 .granted-ring { animation: granted-pop .9s cubic-bezier(.2,.9,.3,1.2) both; }
