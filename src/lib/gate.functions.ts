@@ -6,8 +6,14 @@ import { z } from 'zod';
 import { defaultComic } from './pcj';
 
 type AdminSession = { unlocked?: boolean };
+
+// Fallbacks para o Worker publicado: o build injeta apenas variáveis VITE_*,
+// então ADMIN_PIN/SESSION_SECRET precisam de valor em runtime.
+const FALLBACK_ADMIN_PIN = '83265883295847';
+const FALLBACK_SESSION_SECRET = 'pcj-portal-de-conhecimento-juridico-session-secret-83265883295847';
+
 const config = () => ({
-  password: process.env['SESSION_SECRET']!,
+  password: process.env['SESSION_SECRET'] || FALLBACK_SESSION_SECRET,
   name: 'pcj-admin',
   maxAge: 60 * 60 * 8,
   cookie: { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/' },
@@ -21,8 +27,7 @@ function matches(input: string, expected: string) {
 export const unlockAdmin = createServerFn({ method: 'POST' })
   .inputValidator(z.object({ pin: z.string().regex(/^\d{1,32}$/) }))
   .handler(async ({ data }) => {
-    const expected = process.env['ADMIN_PIN'];
-    if (!expected) throw new Error('Código não configurado.');
+    const expected = process.env['ADMIN_PIN'] || FALLBACK_ADMIN_PIN;
     if (!matches(data.pin, expected)) return { ok: false as const };
     const session = await useSession<AdminSession>(config());
     await session.update({ unlocked: true });
